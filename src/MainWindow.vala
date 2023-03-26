@@ -8,7 +8,11 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     }
 
     construct {
-        this.text_view = new Gtk.TextView ();
+        this.text_view = new Gtk.TextView () {
+            wrap_mode = Gtk.WrapMode.WORD_CHAR,
+        };
+        
+
         this.default_height = 400;
         this.default_width = 600;
 
@@ -17,9 +21,9 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
         text_buffer = text_view.get_buffer ();
         text_buffer.text = "Hello World!";
-        var bold_tag = text_buffer.create_tag ("bold", "weight", 700);
-        var italic_tag = text_buffer.create_tag ("italic", "style", 2);
-        var underline_tag = text_buffer.create_tag ("underline", "underline", Pango.Underline.SINGLE);
+        text_buffer.create_tag ("bold", "weight", 700);
+        text_buffer.create_tag ("italic", "style", 2);
+        text_buffer.create_tag ("underline", "underline", Pango.Underline.SINGLE);
 
         var css_provider = new Gtk.CssProvider ();
 
@@ -35,8 +39,10 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
         text_view_add_to_context_menu (this.text_view);
 
-        var scroll_container = new Gtk.ScrolledWindow ();
-        scroll_container.child = text_view;
+        var scroll_container = new Gtk.ScrolledWindow () {
+            hscrollbar_policy = Gtk.PolicyType.NEVER,
+            child = text_view,
+        };
 
         this.child = scroll_container;
     }
