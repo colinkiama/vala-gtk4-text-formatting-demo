@@ -19,9 +19,19 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         text_buffer.text = "Hello World!";
         var bold_tag = text_buffer.create_tag ("bold", "weight", 700);
         var italic_tag = text_buffer.create_tag ("italic", "style", 2);
-        // TODO: Figure out why underline doesn't appear for Pango.Underline.Single unless
-        // the selected text is also bold
         var underline_tag = text_buffer.create_tag ("underline", "underline", Pango.Underline.SINGLE);
+
+        var css_provider = new Gtk.CssProvider ();
+
+        // 2023-03-26: Single underlines aren't showing in elementary OS without
+        // setting the line-height or also setting text to bold.
+        css_provider.load_from_data ((uint8[])"textview { line-height: 1.2; }");
+
+        Gtk.StyleContext.add_provider_for_display (
+            Gdk.Display.get_default (),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
 
         text_view_add_to_context_menu (this.text_view);
 
@@ -40,7 +50,6 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
             { "italic", null, null, "false", toggle_format },
             { "underline", null, null, "false", toggle_format },
         };
-
 
         this.actions = new SimpleActionGroup ();
         this.actions.add_action_entries (entries, this.text_view);
