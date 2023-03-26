@@ -11,7 +11,6 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         this.text_view = new Gtk.TextView () {
             wrap_mode = Gtk.WrapMode.WORD_CHAR,
         };
-        
 
         this.default_height = 400;
         this.default_width = 600;
@@ -42,11 +41,55 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var scroll_container = new Gtk.ScrolledWindow () {
             hscrollbar_policy = Gtk.PolicyType.NEVER,
             child = text_view,
+            vexpand = true,
+            hexpand = true
         };
 
-        this.child = scroll_container;
-    }
+        var panels_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+            homogeneous = true,
+            margin_top = 6,
+            margin_end = 12,
+            margin_start = 12,
+            margin_bottom = 6
+        };
 
+        var bold_toggle = new Gtk.ToggleButton () {
+            action_name = "format.bold",
+            icon_name = "format-text-bold-symbolic",
+        };
+
+        bold_toggle.insert_action_group ("format", actions);
+
+        var italic_toggle = new Gtk.ToggleButton () {
+            action_name = "format.italic",
+            icon_name = "format-text-italic-symbolic",
+            margin_start = 4,
+            margin_end = 4
+        };
+
+        italic_toggle.insert_action_group ("format", actions);
+
+        var underline_toggle = new Gtk.ToggleButton () {
+            action_name = "format.underline",
+            icon_name = "format-text-underline-symbolic",
+        };
+
+        underline_toggle.insert_action_group ("format", actions);
+
+        panels_box.append (bold_toggle);
+        panels_box.append (italic_toggle);
+        panels_box.append (underline_toggle);
+
+        var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        box.append (panels_box);
+        box.append (scroll_container);
+        
+        
+        this.child = box;
+        this.text_view.grab_focus ();
+    }
+    
+    // Adapted from GTK 4 Widget Factory Demo: https://gitlab.gnome.org/GNOME/gtk/-/tree/main/demos/widget-factory  
     void text_view_add_to_context_menu (Gtk.TextView text_view) {
         Menu menu = new Menu ();
         MenuItem item;
@@ -61,11 +104,11 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         this.actions.add_action_entries (entries, this.text_view);
 
         action = (SimpleAction)this.actions.lookup_action ("bold");
-        action.set_enabled (false);
+        action.set_enabled (true);
         action = (SimpleAction)this.actions.lookup_action ("italic");
-        action.set_enabled (false);
+        action.set_enabled (true);
         action = (SimpleAction)this.actions.lookup_action ("underline");
-        action.set_enabled (false);
+        action.set_enabled (true);
 
         this.text_view.insert_action_group ("format", this.actions);
 
