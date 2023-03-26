@@ -56,6 +56,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var bold_toggle = new Gtk.ToggleButton () {
             action_name = "format.bold",
             icon_name = "format-text-bold-symbolic",
+            can_focus = false,
         };
 
         bold_toggle.insert_action_group ("format", actions);
@@ -63,6 +64,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var italic_toggle = new Gtk.ToggleButton () {
             action_name = "format.italic",
             icon_name = "format-text-italic-symbolic",
+            can_focus = false,
             margin_start = 4,
             margin_end = 4
         };
@@ -72,6 +74,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var underline_toggle = new Gtk.ToggleButton () {
             action_name = "format.underline",
             icon_name = "format-text-underline-symbolic",
+            can_focus = false,
         };
 
         underline_toggle.insert_action_group ("format", actions);
@@ -83,12 +86,11 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         box.append (panels_box);
         box.append (scroll_container);
-        
-        
+
         this.child = box;
         this.text_view.grab_focus ();
     }
-    
+
     // Adapted from GTK 4 Widget Factory Demo: https://gitlab.gnome.org/GNOME/gtk/-/tree/main/demos/widget-factory  
     void text_view_add_to_context_menu (Gtk.TextView text_view) {
         Menu menu = new Menu ();
@@ -123,6 +125,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         menu.append_item (item);
 
         this.text_view.set_extra_menu (menu);
+
         this.text_buffer.changed.connect (text_changed);
         this.text_buffer.mark_set.connect (text_changed_full);
     }
@@ -151,6 +154,14 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         underline.set_enabled (true);
 
         if (!has_selection) {
+            // Get cursor position and set action state
+            // based on if tag is applied in cursor position
+            int cursor_position = this.text_buffer.cursor_position;
+            Gtk.TextIter cursor_iter;
+            this.text_buffer.get_iter_at_offset (out cursor_iter, cursor_position);
+            bold.set_state (cursor_iter.has_tag (bold_tag));
+            italic.set_state (cursor_iter.has_tag (italic_tag));
+            underline.set_state (cursor_iter.has_tag (underline_tag));
             return;
         }
 
