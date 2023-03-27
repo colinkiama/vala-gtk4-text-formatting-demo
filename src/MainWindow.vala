@@ -4,7 +4,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     private SimpleActionGroup actions;
 
     public const string FORMAT_ACTION_GROUP_PREFIX = "format";
-    public const string FORMAT_ACTION_PREFIX = FORMAT_ACTION_PREFIX + ".";
+    public const string FORMAT_ACTION_PREFIX = FORMAT_ACTION_GROUP_PREFIX + ".";
     public const string FORMAT_ACTION_BOLD = "bold";
     public const string FORMAT_ACTION_ITALIC = "italic";
     public const string FORMAT_ACTION_UNDERLINE = "underline";
@@ -71,15 +71,15 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
         SimpleAction action;
 
-        this.actions.add_action_entries (entries, this.text_view);
+        actions_to_return.add_action_entries (entries, this.text_view);
 
-        action = (SimpleAction)this.actions.lookup_action (FORMAT_ACTION_BOLD);
+        action = (SimpleAction)actions_to_return.lookup_action (FORMAT_ACTION_BOLD);
         action.set_enabled (true);
 
-        action = (SimpleAction)this.actions.lookup_action (FORMAT_ACTION_ITALIC);
+        action = (SimpleAction)actions_to_return.lookup_action (FORMAT_ACTION_ITALIC);
         action.set_enabled (true);
 
-        action = (SimpleAction)this.actions.lookup_action (FORMAT_ACTION_UNDERLINE);
+        action = (SimpleAction)actions_to_return.lookup_action (FORMAT_ACTION_UNDERLINE);
         action.set_enabled (true);
 
         return actions_to_return;
@@ -95,7 +95,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         };
 
         var bold_toggle = new Gtk.ToggleButton () {
-            action_name = FORMAT_ACTION_GROUP_PREFIX + FORMAT_ACTION_BOLD,
+            action_name = FORMAT_ACTION_PREFIX + FORMAT_ACTION_BOLD,
             icon_name = ICON_NAME_BOLD,
             can_focus = false,
         };
@@ -130,7 +130,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     private Gtk.ScrolledWindow create_scroll_wrapper () {
         return new Gtk.ScrolledWindow () {
             hscrollbar_policy = Gtk.PolicyType.NEVER,
-            child = text_view,
+            child = this.text_view,
             vexpand = true,
             hexpand = true
         };
@@ -148,18 +148,18 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     }
 
     // Adapted from GTK 4 Widget Factory Demo: https://gitlab.gnome.org/GNOME/gtk/-/tree/main/demos/widget-factory  
-    void add_formatting_options_to_text_view_context_menu (Gtk.TextView text_view) {
+    private void add_formatting_options_to_text_view_context_menu (Gtk.TextView text_view) {
         Menu menu = this.create_formatting_menu ();
         this.text_view.set_extra_menu (menu);
-        this.text_buffer.changed.connect (text_changed);
-        this.text_buffer.mark_set.connect (text_changed_full);
+        this.text_buffer.changed.connect (this.handle_text_view_change);
+        this.text_buffer.mark_set.connect (this.handle_text_view_mark_set);
     }
 
     private Menu create_formatting_menu () {
         Menu menu = new Menu ();
         MenuItem item;
 
-        this.text_view.insert_action_group ("format", this.actions);
+        this.text_view.insert_action_group (FORMAT_ACTION_GROUP_PREFIX, this.actions);
 
         item = new MenuItem ("Bold", FORMAT_ACTION_PREFIX + FORMAT_ACTION_BOLD);
         item.set_attribute ("touch-icon", "s", ICON_NAME_BOLD);
@@ -176,11 +176,11 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         return menu;
     }
 
-    void text_changed (Gtk.TextBuffer buffer) {
-        text_changed_full (buffer, Gtk.TextIter (), new Gtk.TextMark ("", false));
+    private void handle_text_view_change (Gtk.TextBuffer buffer) {
+        this.handle_text_view_mark_set (buffer, Gtk.TextIter (), new Gtk.TextMark ("", false));
     }
 
-    void text_changed_full (Gtk.TextBuffer buffer, Gtk.TextIter iter_in, Gtk.TextMark mark) {
+    private void handle_text_view_mark_set (Gtk.TextBuffer buffer, Gtk.TextIter iter_in, Gtk.TextMark mark) {
         SimpleAction bold = (SimpleAction)actions.lookup_action (FORMAT_ACTION_BOLD);
         SimpleAction italic = (SimpleAction)actions.lookup_action (FORMAT_ACTION_ITALIC);
         SimpleAction underline = (SimpleAction)actions.lookup_action (FORMAT_ACTION_UNDERLINE);
@@ -225,8 +225,8 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         underline.set_state (all_underline);
     }
 
-    void toggle_format (SimpleAction action, Variant value) {
-        Gtk.TextIter start, end;
+    private void toggle_format (SimpleAction action, Variant value) {
+        Gtk.TextIter start, end;    
         string name = action.get_name ();
 
         action.set_state (value);
