@@ -101,11 +101,11 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         Menu menu = this.create_formatting_menu ();
         this.text_view.set_extra_menu (menu);
         this.text_buffer.changed.connect (this.handle_text_buffer_change);
-        this.text_buffer.mark_set.connect (this.handle_text_buffer_mark_set);
         this.text_buffer.insert_text.connect (this.handle_text_buffer_inserted_text);
     }
 
     private void handle_text_buffer_inserted_text (ref Gtk.TextIter iter, string new_text, int new_text_length) {
+        print ("Inserted text\n");
         Gtk.TextTagTable text_buffer_tags = this.text_buffer.get_tag_table ();
         Gtk.TextTag bold_tag = text_buffer_tags.lookup (FORMAT_ACTION_BOLD);
         Gtk.TextTag italic_tag = text_buffer_tags.lookup (FORMAT_ACTION_ITALIC);
@@ -113,15 +113,16 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
         Gee.ArrayList<FormattingType?> formatting_types_to_add = new Gee.ArrayList<FormattingType?> ();
 
-        if (!iter.has_tag (bold_tag)) {
+
+        if (!iter.has_tag (bold_tag) && (bool)this.get_formatting_action (FORMAT_ACTION_BOLD).get_state ()) {
             formatting_types_to_add.add (FormattingType.BOLD);
         }
 
-        if (!iter.has_tag (italic_tag)) {
+        if (!iter.has_tag (italic_tag) && (bool)this.get_formatting_action (FORMAT_ACTION_ITALIC).get_state ()) {
             formatting_types_to_add.add (FormattingType.ITALIC);
         }
 
-        if (!iter.has_tag (underline_tag)) {
+        if (!iter.has_tag (underline_tag) && (bool)this.get_formatting_action (FORMAT_ACTION_UNDERLINE).get_state ()) {
             formatting_types_to_add.add (FormattingType.UNDERLINE);
         }
 
@@ -279,6 +280,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
     // Is called whenever a text selection is made and in each time the cursor moves   
     private void handle_text_buffer_mark_set (Gtk.TextBuffer buffer, Gtk.TextIter iterator, Gtk.TextMark mark) {
+        print ("Mark set\n");
         this.handle_text_buffer_change (buffer);
     }
 
