@@ -63,9 +63,9 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         var actions_to_return = new SimpleActionGroup ();
 
         ActionEntry[] entries = {
-            { FORMAT_ACTION_BOLD, null, null, "false", toggle_format},
-            { FORMAT_ACTION_ITALIC, null, null, "false", toggle_format },
-            { FORMAT_ACTION_UNDERLINE, null, null, "false", toggle_format },
+            { FORMAT_ACTION_BOLD, null, null, "false", this.toggle_format},
+            { FORMAT_ACTION_ITALIC, null, null, "false", this.toggle_format },
+            { FORMAT_ACTION_UNDERLINE, null, null, "false", this.toggle_format },
         };
 
         SimpleAction action;
@@ -99,8 +99,8 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     private void add_formatting_options_to_text_view_context_menu (Gtk.TextView text_view) {
         Menu menu = this.create_formatting_menu ();
         this.text_view.set_extra_menu (menu);
-        this.text_buffer.changed.connect (this.handle_text_view_change);
-        this.text_buffer.mark_set.connect (this.handle_text_view_mark_set);
+        this.text_buffer.changed.connect (this.handle_text_buffer_change);
+        this.text_buffer.mark_set.connect (this.handle_text_buffer_mark_set);
     }
 
     private Gtk.ScrolledWindow create_scroll_wrapper () {
@@ -175,7 +175,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         return menu;
     }
 
-    private void handle_text_view_change (Gtk.TextBuffer buffer) {
+    private void handle_text_buffer_change (Gtk.TextBuffer buffer) {
         SimpleAction bold_action = this.get_formatting_action (FORMAT_ACTION_BOLD);
         SimpleAction italic_action = this.get_formatting_action (FORMAT_ACTION_ITALIC);
         SimpleAction underline_action = this.get_formatting_action (FORMAT_ACTION_UNDERLINE);
@@ -204,6 +204,8 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
         iterator.assign (start_iterator);
 
+        // For each formatting option, check if selected text is all within
+        // the respective formatting tags
         while (!iterator.equal (end_iterator)) {
             is_all_bold &= iterator.has_tag (bold_tag);
             is_all_italic &= iterator.has_tag (italic_tag);
@@ -216,8 +218,9 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         underline_action.set_state (is_all_underline);
     }
 
-    private void handle_text_view_mark_set (Gtk.TextBuffer buffer, Gtk.TextIter iterator, Gtk.TextMark mark) {
-        this.handle_text_view_change (buffer);
+    // Is called whenever a text selection is made and in each time the cursor moves   
+    private void handle_text_buffer_mark_set (Gtk.TextBuffer buffer, Gtk.TextIter iterator, Gtk.TextMark mark) {
+        this.handle_text_buffer_change (buffer);
     }
 
     private void toggle_format (SimpleAction action, Variant value) {
