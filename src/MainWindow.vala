@@ -2,6 +2,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     private Gtk.TextView text_view;
     private Gtk.TextBuffer text_buffer;
     private SimpleActionGroup actions;
+    private Gee.ArrayQueue<FormattingRequest?> formatting_queue = new Gee.ArrayQueue<FormattingRequest?> ();
 
     public const string FORMAT_ACTION_GROUP_PREFIX = "format";
     public const string FORMAT_ACTION_PREFIX = FORMAT_ACTION_GROUP_PREFIX + ".";
@@ -101,7 +102,40 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         this.text_view.set_extra_menu (menu);
         this.text_buffer.changed.connect (this.handle_text_buffer_change);
         this.text_buffer.mark_set.connect (this.handle_text_buffer_mark_set);
+        this.text_buffer.insert_text.connect (this.handle_text_buffer_inserted_text);
     }
+
+    private void handle_text_buffer_inserted_text (ref Gtk.TextIter iter, string new_text, int new_text_length) {
+        Gtk.TextTagTable text_buffer_tags = this.text_buffer.get_tag_table ();
+        Gtk.TextTag bold_tag = text_buffer_tags.lookup (FORMAT_ACTION_BOLD);
+        Gtk.TextTag italic_tag = text_buffer_tags.lookup (FORMAT_ACTION_ITALIC);
+        Gtk.TextTag underline_tag = text_buffer_tags.lookup (FORMAT_ACTION_UNDERLINE);
+
+        Gee.ArrayList<FormattingType?> formatting_types_to_add = new Gee.ArrayList<FormattingType?> ();
+
+        if (!iter.has_tag (bold_tag)) {
+            formatting_types_to_add.add (FormattingType.BOLD);
+        }
+
+        if (!iter.has_tag (italic_tag)) {
+            formatting_types_to_add.add (FormattingType.ITALIC);
+        }
+
+        if (!iter.has_tag (underline_tag)) {
+            formatting_types_to_add.add (FormattingType.UNDERLINE);
+        }
+
+        if (formatting_types_to_add.size == 0) {
+            return;
+        }
+
+        this.formatting_queue.offer (FormattingRequest () {
+            formatting_types = formatting_types_to_add,
+            insert_offset = iter.get_offset (),
+            insert_length = new_text.length,
+        });
+    }
+
 
     private Gtk.ScrolledWindow create_scroll_wrapper () {
         return new Gtk.ScrolledWindow () {
@@ -175,7 +209,32 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         return menu;
     }
 
+    // TODO: Come up with alternative name if you think of one
+    private void process_formatting_queue (Gtk.TextBuffer buffer) {
+        while (this.formatting_queue.size > 0) {
+            FormattingRequest formatting_request = this.formatting_queue.poll ();
+
+            foreach (FormattingType? formatting_type in formatting_request.formatting_types) {
+                Gtk.TextIter start_iterator;
+                Gtk.TextIter end_iterator;
+                buffer.get_iter_at_offset (out start_iterator, formatting_request.insert_offset);
+                buffer.get_iter_at_offset (out end_iterator, formatting_request.insert_offset + formatting_request.insert_length);
+                buffer.apply_tag_by_name (enum_to_nick (
+                    (int)formatting_type,
+                    typeof (FormattingType)),
+                    start_iterator,
+                    end_iterator
+                );
+            }
+        }
+    }
+
     private void handle_text_buffer_change (Gtk.TextBuffer buffer) {
+        if (this.formatting_queue.size > 0) {
+            this.process_formatting_queue (buffer);
+            return;
+        }
+
         SimpleAction bold_action = this.get_formatting_action (FORMAT_ACTION_BOLD);
         SimpleAction italic_action = this.get_formatting_action (FORMAT_ACTION_ITALIC);
         SimpleAction underline_action = this.get_formatting_action (FORMAT_ACTION_UNDERLINE);
@@ -240,5 +299,21 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
 
     private SimpleAction get_formatting_action (string name) {
         return this.actions.lookup_action (name) as SimpleAction;
+    }
+
+    string enum_to_nick (int @value, Type enum_type) {
+        var enum_class = (EnumClass) enum_type.class_ref ();
+
+        if (enum_class == null) {
+            return "%i".printf (@value);
+        }
+
+        unowned var enum_value = enum_class.get_value (@value);
+
+        if (enum_value == null) {
+            return "%i".printf (@value);
+        }
+
+        return enum_value.value_nick;
     }
 }
