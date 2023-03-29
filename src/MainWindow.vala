@@ -254,12 +254,34 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         if (!has_selection) {
             // Get cursor position and set action state
             // based on if tag is applied in cursor position
+            // TODO: Convert this into a recursive method that goes down 2 level maximum (current caret position and one char before)
+
             int cursor_position = this.text_buffer.cursor_position;
             Gtk.TextIter cursor_iter;
             this.text_buffer.get_iter_at_offset (out cursor_iter, cursor_position);
-            bold_action.set_state (cursor_iter.has_tag (bold_tag));
-            italic_action.set_state (cursor_iter.has_tag (italic_tag));
-            underline_action.set_state (cursor_iter.has_tag (underline_tag));
+            bool has_bold_tag = cursor_iter.has_tag (bold_tag);
+            bool has_italic_tag = cursor_iter.has_tag (italic_tag);
+            bool has_underline_tag = cursor_iter.has_tag (underline_tag);
+
+            bool has_formatting = has_bold_tag || has_italic_tag || has_underline_tag;
+
+            if (!has_formatting) {
+                bool could_move_back = cursor_iter.backward_char ();
+                if (could_move_back) {
+                    has_bold_tag = cursor_iter.has_tag (bold_tag);
+                    has_italic_tag = cursor_iter.has_tag (italic_tag);
+                    has_underline_tag = cursor_iter.has_tag (underline_tag);
+
+                    bold_action.set_state (has_bold_tag);
+                    italic_action.set_state (has_italic_tag);
+                    underline_action.set_state (has_underline_tag);
+                    return;
+                }
+            }
+
+            bold_action.set_state (has_bold_tag);
+            italic_action.set_state (has_italic_tag);
+            underline_action.set_state (has_underline_tag);
             return;
         }
 
