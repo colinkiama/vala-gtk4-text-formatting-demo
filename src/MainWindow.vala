@@ -92,6 +92,9 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         buffer_to_return.create_tag (FORMAT_ACTION_BOLD, "weight", 700);
         buffer_to_return.create_tag (FORMAT_ACTION_ITALIC, "style", 2);
         buffer_to_return.create_tag (FORMAT_ACTION_UNDERLINE, "underline", Pango.Underline.SINGLE);
+        buffer_to_return.changed.connect (this.handle_text_buffer_change);
+        buffer_to_return.insert_text.connect (this.handle_text_buffer_inserted_text);
+        buffer_to_return.mark_set.connect (this.handle_text_buffer_mark_set);
 
         return buffer_to_return;
     }
@@ -100,8 +103,6 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     private void add_formatting_options_to_text_view_context_menu (Gtk.TextView text_view) {
         Menu menu = this.create_formatting_menu ();
         this.text_view.set_extra_menu (menu);
-        this.text_buffer.changed.connect (this.handle_text_buffer_change);
-        this.text_buffer.insert_text.connect (this.handle_text_buffer_inserted_text);
     }
 
     private void handle_text_buffer_inserted_text (ref Gtk.TextIter iter, string new_text, int new_text_length) {
@@ -278,9 +279,12 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         underline_action.set_state (is_all_underline);
     }
 
-    // Is called whenever a text selection is made and in each time the cursor moves   
+    // Is called whenever a text selection is made and in each time the caret moves   
     private void handle_text_buffer_mark_set (Gtk.TextBuffer buffer, Gtk.TextIter iterator, Gtk.TextMark mark) {
-        print ("Mark set\n");
+        if (mark.name != "insert") {
+            return;
+        }
+
         this.handle_text_buffer_change (buffer);
     }
 
