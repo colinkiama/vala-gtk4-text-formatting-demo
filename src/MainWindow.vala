@@ -231,6 +231,37 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         }
     }
 
+    private void handle_text_cursor_movement_with_no_selection (
+        Gtk.TextIter cursor_iter,
+        Gee.HashMap<string, Gtk.TextTag> formatting_tags,
+        Gee.HashMap<string, SimpleAction> formatting_actions) {
+            // Get cursor position and set action state
+            // based on if tag is applied in cursor position
+            bool has_bold_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_BOLD]);
+            bool has_italic_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_ITALIC]);
+            bool has_underline_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_UNDERLINE]);
+            bool has_formatting = has_bold_tag || has_italic_tag || has_underline_tag;
+
+            if (!has_formatting) {
+                bool could_move_back = cursor_iter.backward_char ();
+                if (could_move_back) {
+                    has_bold_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_BOLD]);
+                    has_italic_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_ITALIC]);
+                    has_underline_tag = cursor_iter.has_tag (formatting_tags[FORMAT_ACTION_UNDERLINE]);
+
+                    formatting_actions[FORMAT_ACTION_BOLD].set_state (has_bold_tag);
+                    formatting_actions[FORMAT_ACTION_ITALIC].set_state (has_italic_tag);
+                    formatting_actions[FORMAT_ACTION_UNDERLINE].set_state (has_underline_tag);
+                    return;
+                }
+            }
+
+            formatting_actions[FORMAT_ACTION_BOLD].set_state (has_bold_tag);
+            formatting_actions[FORMAT_ACTION_ITALIC].set_state (has_italic_tag);
+            formatting_actions[FORMAT_ACTION_UNDERLINE].set_state (has_underline_tag);
+            return;
+    }
+
     private void handle_text_buffer_change (Gtk.TextBuffer buffer) {
         if (this.formatting_queue.size > 0) {
             this.process_formatting_queue (buffer);
@@ -252,36 +283,20 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         bool has_selection = this.text_buffer.get_selection_bounds (out start_iterator, out end_iterator);
 
         if (!has_selection) {
-            // Get cursor position and set action state
-            // based on if tag is applied in cursor position
-            // TODO: Convert this into a recursive method that goes down 2 level maximum (current caret position and one char before)
-
             int cursor_position = this.text_buffer.cursor_position;
             Gtk.TextIter cursor_iter;
             this.text_buffer.get_iter_at_offset (out cursor_iter, cursor_position);
-            bool has_bold_tag = cursor_iter.has_tag (bold_tag);
-            bool has_italic_tag = cursor_iter.has_tag (italic_tag);
-            bool has_underline_tag = cursor_iter.has_tag (underline_tag);
+            var formatting_tags = new Gee.HashMap<string, Gtk.TextTag> ();
+            formatting_tags[FORMAT_ACTION_BOLD] = bold_tag;
+            formatting_tags[FORMAT_ACTION_ITALIC] = italic_tag;
+            formatting_tags[FORMAT_ACTION_UNDERLINE] = underline_tag;
 
-            bool has_formatting = has_bold_tag || has_italic_tag || has_underline_tag;
+            var formatting_actions = new Gee.HashMap<string, SimpleAction> ();
+            formatting_actions[FORMAT_ACTION_BOLD] = bold_action;
+            formatting_actions[FORMAT_ACTION_ITALIC] = italic_action;
+            formatting_actions[FORMAT_ACTION_UNDERLINE] = underline_action;
 
-            if (!has_formatting) {
-                bool could_move_back = cursor_iter.backward_char ();
-                if (could_move_back) {
-                    has_bold_tag = cursor_iter.has_tag (bold_tag);
-                    has_italic_tag = cursor_iter.has_tag (italic_tag);
-                    has_underline_tag = cursor_iter.has_tag (underline_tag);
-
-                    bold_action.set_state (has_bold_tag);
-                    italic_action.set_state (has_italic_tag);
-                    underline_action.set_state (has_underline_tag);
-                    return;
-                }
-            }
-
-            bold_action.set_state (has_bold_tag);
-            italic_action.set_state (has_italic_tag);
-            underline_action.set_state (has_underline_tag);
+            this.handle_text_cursor_movement_with_no_selection (cursor_iter, formatting_tags, formatting_actions);
             return;
         }
 
