@@ -285,6 +285,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         if (!has_selection) {
             int cursor_position = this.text_buffer.cursor_position;
             Gtk.TextIter cursor_iter;
+
             this.text_buffer.get_iter_at_offset (out cursor_iter, cursor_position);
             var formatting_tags = new Gee.HashMap<string, Gtk.TextTag> ();
             formatting_tags[FORMAT_ACTION_BOLD] = bold_tag;
