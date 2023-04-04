@@ -14,6 +14,8 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     public const string ICON_NAME_ITALIC = "format-text-italic-symbolic";
     public const string ICON_NAME_UNDERLINE = "format-text-underline-symbolic";
 
+    private static Gee.MultiMap<string, string> action_accelerators = new Gee.HashMultiMap<string, string> ();
+
     public MainWindow (Gtk.Application app) {
         Object (application: app);
     }
@@ -31,6 +33,10 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
             css_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
+
+        action_accelerators[FORMAT_ACTION_BOLD] = "<Control>B";
+        action_accelerators[FORMAT_ACTION_ITALIC] = "<Control>I";
+        action_accelerators[FORMAT_ACTION_UNDERLINE] = "<Control>U";
     }
 
     construct {
@@ -45,6 +51,7 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         };
 
         this.actions = this.create_formatting_actions ();
+        this.register_action_accelerators ();
         this.text_buffer = this.create_text_buffer ();
         this.add_formatting_options_to_text_view_context_menu (this.text_view);
 
@@ -58,6 +65,17 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         this.child = box;
 
         this.text_view.grab_focus ();
+    }
+
+    private void register_action_accelerators () {
+        this.insert_action_group (FORMAT_ACTION_GROUP_PREFIX, actions);
+
+        foreach (var action_name in action_accelerators.get_keys ()) {
+            ((Gtk.Application) GLib.Application.get_default ()).set_accels_for_action (
+                FORMAT_ACTION_PREFIX + action_name,
+                action_accelerators[action_name].to_array ()
+            );
+        }
     }
 
     private SimpleActionGroup create_formatting_actions () {
@@ -211,7 +229,6 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
         return menu;
     }
 
-    // TODO: Come up with alternative name if you think of one
     private void process_formatting_queue (Gtk.TextBuffer buffer) {
         while (this.formatting_queue.size > 0) {
             FormattingRequest formatting_request = this.formatting_queue.poll ();
@@ -220,7 +237,9 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
                 Gtk.TextIter start_iterator;
                 Gtk.TextIter end_iterator;
                 buffer.get_iter_at_offset (out start_iterator, formatting_request.insert_offset);
-                buffer.get_iter_at_offset (out end_iterator, formatting_request.insert_offset + formatting_request.insert_length);
+                buffer.get_iter_at_offset (
+                    out end_iterator,
+                    formatting_request.insert_offset + formatting_request.insert_length);
                 buffer.apply_tag_by_name (enum_to_nick (
                     (int)formatting_type,
                     typeof (FormattingType)),
