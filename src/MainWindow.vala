@@ -124,7 +124,6 @@ public class TextFormattingDemo.MainWindow : Gtk.ApplicationWindow {
     }
 
     private void handle_text_buffer_inserted_text (ref Gtk.TextIter iter, string new_text, int new_text_length) {
-        print ("Inserted text\n");
         Gtk.TextTagTable text_buffer_tags = this.text_buffer.get_tag_table ();
         Gtk.TextTag bold_tag = text_buffer_tags.lookup (FORMAT_ACTION_BOLD);
         Gtk.TextTag italic_tag = text_buffer_tags.lookup (FORMAT_ACTION_ITALIC);
