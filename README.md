@@ -15,6 +15,13 @@ Features:
 
 ![Demo Application with context menu opened](img/context-menu.png)
 
+## Prerequisites
+
+- glib-2.0
+- gobject-2.0
+- gtk4
+- gee-0.8
+
 ## Build instructions:
 
 ```Bash
@@ -23,7 +30,7 @@ $ ninja -C build
 $ build/text_formatting
 ```
 
-## How to store my formatted text data
+## How to store/load formatted text data
 
 You can retrieve the text using the `text` field in `Gtk.TextBuffer` or with `get_text()` however
 the formatting is stored in the text buffer's tag table. Here's a block of code you can use to get the data you need
@@ -50,6 +57,9 @@ this.text_buffer.tag_table.foreach ((tag) => {
 
 You could adapt the block of code above to store the tag data in a list and use that with the text from the text buffer
 to store the formatted text data in any data format you desire.
+
+To load the data and replicate the same formatting, you'll need to do the opposite. Parse the data from your data format then
+provide the text buffer object with the text and formatting tags separately.
 
 For an example of an app that does this in production, see Sticky Notes (Note: It's written in TypeScript): https://github.com/vixalien/sticky
 
