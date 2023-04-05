@@ -27,7 +27,7 @@ Features:
 ```Bash
 $ meson build
 $ ninja -C build
-$ build/text_formatting
+$ build/src/my_text_formatting_demo
 ```
 
 ## How to store/load formatted text data
