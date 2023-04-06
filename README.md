@@ -69,4 +69,5 @@ For an example of an app that does this in production, see Sticky Notes (Note: I
 - GTK 4 Documentation - https://docs.gtk.org/gtk4/
 - GTK 4 Widget Fatory Demo - https://gitlab.gnome.org/GNOME/gtk/-/tree/main/demos/widget-factory
 - Valadoc.org - https://valadoc.org
+- elementary OS Mail - https://github.com/elementary/mail
 - Sticky Notes App - https://github.com/vixalien/sticky
