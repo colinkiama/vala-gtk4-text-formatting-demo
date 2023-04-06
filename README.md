@@ -1,6 +1,6 @@
 # text_formatting
 
-An app that demonstrates how to create a Vaa GTK4 app with text formatting features.
+An app that demonstrates how to create a Vala GTK4 app with text formatting features.
 
 Features:
 
