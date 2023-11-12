@@ -1,0 +1,27 @@
+repo_name: colinkiama/vala-gtk4-text-formatting-demo
+report_id: bf39109f26e39857a1d2e85e6d1a6f3e
+repo_type: Public
+timestamp: '2023-11-12T07:13:28+00:00'
+requested_by: colinkiama
+provider: github
+branch: main
+detected_tools_count: 2
+tools:
+- name: Vala
+  description: An object-oriented programming language
+  website_url: https://wiki.gnome.org/Projects/Vala
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/4409/default_afecc12361f844da33073465e0ab7b27b1715f16.jpg
+  detection_source: Repo Metadata
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source: Repo Metadata
